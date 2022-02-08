@@ -1,0 +1,91 @@
+const path = require("path");
+const http = require("http");
+const messageModel = require('./models/Message')
+const mongoose = require('mongoose');
+const express = require("express");
+const socketio = require("socket.io");
+const formatMessage = require("./utils/messages");
+const {userJoin,getCurrentUser,userLeave,getRoomUsers,} = require("./utils/users");
+const app = express();
+const PORT = 3000 || process.env.PORT;
+const server = http.createServer(app);
+const io = socketio(server);
+const botName = "chatCordBot";
+const db = require("./db")
+app.use(express.static(path.join(__dirname, "public")));
+
+app.use(express.json())
+
+
+io.on("connection", (socket) => {
+  
+   socket.on("joinRoom", async ({ username, room }) => {
+     const user = userJoin(socket.id, username, room);
+     socket.join(user.room);
+     socket.emit("message", formatMessage(botName, "Welcome to chatCord"));
+
+    //loading all previous messages
+      const prevmessages = await messageModel.find({room : user.room});
+      try {
+          if(prevmessages.length != 0){
+            //try to emit here
+            socket.emit('prevMessages', prevmessages)
+          }
+        } catch (err) {
+          res.status(500).send(err);
+        }
+
+    //everyone except user connecting
+    socket.broadcast
+      .to(user.room)
+      .emit(
+        "message",
+        formatMessage(botName, `${user.username} has joined the chat`)
+      );
+    io.to(user.room).emit("roomUsers", {
+      room: user.room,
+      users: getRoomUsers(user.room),
+    });
+  });
+
+  //listening for chat message
+  socket.on("chatMessage", async (msg) => {
+    const user = getCurrentUser(socket.id);
+    //emit to that room
+    const messageContent = new messageModel({
+      "from_user": user.username,
+      "room" : user.room,
+      "message" : msg
+    });
+    try {
+        await messageContent.save((err) => {
+          if(err){
+            res.send(err)
+          }
+        });
+      } catch (err) {
+        res.status(500).send(err);
+      }
+    io.to(user.room).emit("message", formatMessage(user.username, msg));
+  });
+
+  //everyone
+  //io.emit()
+  socket.on("disconnect", () => {
+    const user = userLeave(socket.id);
+    if (user) {
+      io.to(user.room).emit(
+        "message",
+        formatMessage(botName, `${user.username} has left the chat`)
+      );
+
+      io.to(user.room).emit("roomUsers", {
+        room: user.room,
+        users: getRoomUsers(user.room),
+      });
+    }
+  });
+});
+
+
+server.listen(PORT, () => console.log(`server running on port ${PORT}`));
