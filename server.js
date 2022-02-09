@@ -13,12 +13,15 @@ const io = socketio(server);
 const botName = "chatCordBot";
 const db = require("./db")
 app.use(express.static(path.join(__dirname, "public")));
-
+const router = require('./routes/router')
 app.use(express.json())
+app.use(router)
+const auth = require('./middleware/checkAuth')
 
+//trying to set cookie username so that only those with cookie can type their message.
 
 io.on("connection", (socket) => {
-  
+
    socket.on("joinRoom", async ({ username, room }) => {
      const user = userJoin(socket.id, username, room);
      socket.join(user.room);
