@@ -1,7 +1,6 @@
 const path = require("path");
 const http = require("http");
 const messageModel = require('./models/Message')
-const mongoose = require('mongoose');
 const express = require("express");
 const socketio = require("socket.io");
 const formatMessage = require("./utils/messages");
@@ -16,9 +15,6 @@ app.use(express.static(path.join(__dirname, "public")));
 const router = require('./routes/router')
 app.use(express.json())
 app.use(router)
-const auth = require('./middleware/checkAuth')
-
-//trying to set cookie username so that only those with cookie can type their message.
 
 io.on("connection", (socket) => {
 
@@ -46,8 +42,7 @@ io.on("connection", (socket) => {
         formatMessage(botName, `${user.username} has joined the chat`)
       );
     io.to(user.room).emit("roomUsers", {
-      room: user.room,
-      users: getRoomUsers(user.room),
+      room: user.room
     });
   });
 
@@ -83,8 +78,7 @@ io.on("connection", (socket) => {
       );
 
       io.to(user.room).emit("roomUsers", {
-        room: user.room,
-        users: getRoomUsers(user.room),
+        room: user.room
       });
     }
   });

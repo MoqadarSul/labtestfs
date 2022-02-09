@@ -1,6 +1,5 @@
 const bodyParser = require('body-parser')
 const express = require('express')
-const mongoose = require('mongoose')
 const app = express();
 const userModel = require('../models/User')
 const cookieParser = require("cookie-parser");
@@ -9,8 +8,8 @@ var urlencodedParser = bodyParser.urlencoded({ extended: false })
 const jwt = require('jsonwebtoken')
 const auth = require('../middleware/checkAuth')
 const bcrypt = require("bcrypt");
-const url = require('url')
 
+//compare the two cookies and see if its valid cookie.
 app.post('/signup', urlencodedParser, async (req, res) =>{
   const {username, firstname, lastname, password} = req.body;
   
@@ -48,7 +47,7 @@ app.post('/signup', urlencodedParser, async (req, res) =>{
 app.post('/login', urlencodedParser, async (req, res) =>{
     const {username, password} = req.body;
     let userfound = await userModel.find({'username' : username})
-    console.log(userfound[0])
+    
       if(userfound.length == 0){
         return res.status(400).json({"errors" : [
             {
@@ -83,11 +82,4 @@ app.get("/logout", auth, (req, res) => {
     .json({ message: "Successfully logged out 😏 🍀" });
 });
 
-
-
-
-app.get("/chat", auth, (req, res) => {
-  
-  return res.json({ user: { username: req.username} });
-});
   module.exports = app

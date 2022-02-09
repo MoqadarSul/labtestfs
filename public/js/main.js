@@ -2,33 +2,37 @@ const chatForm = document.getElementById('chat-form')
 const chatMessages = document.querySelector('.chat-messages');
 const roomName = document.getElementById('room-name');
 const userList = document.getElementById('users');
+const send_button = document.getElementById('sendmessage');
 let prevMessages = [];
-
 //get username and room from url
 const {username, room} = Qs.parse(location.search, {
     ignoreQueryPrefix : true
 });
-
+ 
+ if(username){
+     send_button.disabled = false; 
+ }
+ if(!username){
+     location.replace("http://localhost:3000/login.html")
+ }
+let c = document.cookie;
+console.log(c)
 const socket = io.connect();
-
 //join chatroom
 socket.emit('joinRoom', {username, room});
 
 //get room and users
 socket.on('roomUsers', ({room, users}) =>{
     outputRoomName(room);
-    outputUsers(users);
 })
 
 socket.on('prevMessages', messages=>{
     prevMessages = messages;
     outputOldMessages(prevMessages)
-    console.log(prevMessages)
 })
 
 //message from server
 socket.on('message', message =>{
-    console.log(message);
     outputMessage(message);
     //scroll down
     chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -70,12 +74,6 @@ function outputRoomName(room){
     roomName.innerText = room;
 }
 
-//Addign users to dom
-function outputUsers(users){
-    userList.innerHTML = `
-        ${users.map(user =>`<li>${user.username}</li>`).join('')}
-    `
-}
 
 
 function outputOldMessages(messages){
