@@ -21,14 +21,9 @@
 			<main class="join-main">
 				<form action="chat.html">
 					<div class="form-control">
-						<label for="username">Username</label>
-						<input
-							type="text"
-							name="username"
-							id="username"
-							placeholder="Enter username..."
-							required
-						/>
+						<label for="username" id="mytitle"></label>
+					<!-- send a hidden field with username-->
+					<input type="hidden" id="username" name="username" value=""/>
 					</div>
 					<div class="form-control">
 						<label for="room">Room</label>
@@ -41,9 +36,27 @@
 							<option value="Java">Java</option>
 						</select>
 					</div>
-					<button type="submit" class="btn">Join Chat</button>
+					<button type="submit" class="btn" id="joinChat" disabled>Join Chat</button>
 				</form>
 			</main>
+			<script>
+				const params = new URLSearchParams(document.location.search);
+				const hiddenField = document.getElementById('username');
+				let bt = document.getElementById('joinChat');
+				const s = params.get("username");
+				document.getElementById('mytitle').innerHTML = `Welcome ${s}`;
+				
+				if(params.get("username")){
+					bt.disabled = false;
+					hiddenField.value = `${params.get("username")}`;
+				}
+				if(!params.get("username")){
+					location.replace("http://localhost:3000/login.html")
+				}
+				//if username isnt there then diable button
+				
+				
+			</script>
 		</div>
 	</body>
 </html>

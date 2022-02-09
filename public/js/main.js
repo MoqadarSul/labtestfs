@@ -77,6 +77,7 @@ function outputUsers(users){
     `
 }
 
+
 function outputOldMessages(messages){
     messages.map((message)=>{
         const div = document.createElement('div');
